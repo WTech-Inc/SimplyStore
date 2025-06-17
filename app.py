@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, render_template
 from flask_wbank import WBankService
 
 app = Flask(__name__, static_folder="../frontend")
@@ -8,6 +8,10 @@ products = [
   dict(id=1, name="wbank-30000", price=300),
   dict(id=2, name="protein-55g", price=120)
 ]
+
+@app.route("/")
+def index():
+  return render_template("index.html")
 
 @app.route("/products")
 def product():
