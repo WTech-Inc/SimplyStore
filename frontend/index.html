@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>JingFa Store</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    button { margin-left: 1rem; }
+    .product, .cart-item { margin-bottom: 0.5rem; }
+    .paybox { margin-top: 1.5rem; background: #f8f8f8; padding: 1rem; border-radius: 5px; width: 320px; }
+  </style>
+</head>
+<body>
+  <h1>JingFa Store</h1>
+  <div id="root"></div>
+  <script type="text/babel">
+    function App() {
+      const [products, setProducts] = React.useState([]);
+      const [cart, setCart] = React.useState([]);
+      const [username, setUsername] = React.useState("");
+      const [password, setPassword] = React.useState("");
+      const [paying, setPaying] = React.useState(false);
+
+      React.useEffect(() => {
+        fetch("/products")
+          .then(res => res.json())
+          .then(data => setProducts(data));
+      }, []);
+
+      const total = cart.reduce((sum, p) => sum + p.price, 0);
+
+      const addToCart = (p) => setCart([...cart, p]);
+
+      const handlePay = () => setPaying(true);
+
+      const handleWBankPay = () => {
+        fetch("/wbank/pay", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username, password, amount: total
+          }),
+        })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.message);
+          if (data.success) {
+            setCart([]);
+            setPaying(false);
+            setUsername("");
+            setPassword("");
+          }
+        });
+      };
+
+      return (
+        <div>
+          <h2>Products</h2>
+          <div>
+            {products.map(p => (
+              <div className="product" key={p.id}>
+                {p.name} - ${p.price}
+                <button onClick={() => addToCart(p)}>Add to Cart</button>
+              </div>
+            ))}
+          </div>
+          <h2>Cart ({cart.length})</h2>
+          <div>
+            {cart.map((p, i) => (
+              <div className="cart-item" key={i}>
+                {p.name} - ${p.price}
+              </div>
+            ))}
+          </div>
+          <div>Total: ${total}</div>
+          <button onClick={handlePay} disabled={cart.length === 0}>Checkout with WBank</button>
+          {paying &&
+            <div className="paybox">
+              <div><b>WBank Payment</b></div>
+              <div>
+                <input
+                  placeholder="WBank Username"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  style={{margin: "0.5rem 0", width: "95%"}}
+                /><br />
+                <input
+                  placeholder="WBank Password"
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  style={{margin: "0.5rem 0", width: "95%"}}
+                /><br />
+                <button onClick={handleWBankPay} disabled={!username || !password}>Pay ${total}</button>
+                <button onClick={() => setPaying(false)} style={{marginLeft:10}}>Cancel</button>
+              </div>
+            </div>
+          }
+        </div>
+      );
+    }
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
