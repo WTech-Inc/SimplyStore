@@ -63,7 +63,7 @@
           <div>
             {products.map(p => (
               <div className="product" key={p.id}>
-                {p.name} - ${p.price}
+                {p.pname} - ${p.price}
                 <button onClick={() => addToCart(p)}>Add to Cart</button>
               </div>
             ))}
@@ -72,7 +72,7 @@
           <div>
             {cart.map((p, i) => (
               <div className="cart-item" key={i}>
-                {p.name} - ${p.price}
+                {p.pname} - ${p.price}
               </div>
             ))}
           </div>
