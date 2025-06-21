@@ -86,17 +86,15 @@
                   placeholder="WBank Username"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
-                  style={{margin: "0.5rem 0", width: "95%"}}
                 /><br />
                 <input
                   placeholder="WBank Password"
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  style={{margin: "0.5rem 0", width: "95%"}}
                 /><br />
                 <button onClick={handleWBankPay} disabled={!username || !password}>Pay ${total}</button>
-                <button onClick={() => setPaying(false)} style={{marginLeft:10}}>Cancel</button>
+                <button onClick={() => setPaying(false)} >Cancel</button>
               </div>
             </div>
           }

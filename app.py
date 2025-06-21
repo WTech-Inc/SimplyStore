@@ -9,15 +9,19 @@ from wtforms.validators import DataRequired,NumberRange
 from wtforms import StringField,BooleanField,SelectField,FloatField,IntegerField
 import hashlib, datetime
 
-app = Flask(__name__, static_folder="../frontend")
+app = Flask(__name__, template_folder="frontend")
 wbank = WBankService()
-app.config['SQLALCHEMY_DATABASE_URI'] = str(os.environ.get("dataurl"))
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://default:Gd2MsST3QYWF@ep-hidden-salad-a1a7pob9-pooler.ap-southeast-1.aws.neon.tech:5432/verceldb?sslmode=require"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 app.config['SECRET_KEY'] = hashlib.sha256("WTech2225556".encode()).hexdigest()
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(minutes=5)
 
-products = [
+@app.before_request
+def br():
+   session["user"] = None
+
+product_list = [
   dict(id=1, name="wbank-30000", price=300),
   dict(id=2, name="protein-55g", price=120)
 ]
@@ -43,24 +47,26 @@ class staff(db.Model):
   id = db.Column(db.Integer, primary_key=True, autoincrement=False)
   name = db.Column(db.String(20), nullable=False)
   pw = db.Column(db.String(30), nullable=False, default="wtech1234")
-  basicSalary = db.Column(db.Integer, nullable=False, default=15000)
+  basicsalary = db.Column(db.Integer, nullable=False, default=15000)
   def __init__(self, id, name, pw, basicSalary):
     self.id = id
     self.name = name
     self.pw = pw
-    self.basicSalary = basicSalary
+    self.basicsalary = basicSalary
 
 # 訂單資料表模型
 class orders(db.Model):
   __tablename__ = "orders"
-  id = db.Column(db.Integer, primary_key=True, autoincrement=False)
-  productName = db.Column(db.String(80), db.ForeignKey("products.name"), nullable=False)
-  productPrice = db.Column(db.Integer, db.ForeignKey("products.price"), nullable=False)
-  status = db.Column(db.String(20), nullable=False, default="等待付款")
-  def __init__(self, id, productName, productPrice, status):
+  id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+  productid = db.Column(db.Integer,  db.ForeignKey("products.id"), nullable=False)
+  status = db.Column(db.String(20), nullable=False, default="已付款")
+  product = db.relationship("products")
+  @property
+  def productPrice(self):
+     return self.product.price if self.product else None
+  def __init__(self, id, productid, status):
     self.id = id
-    self.productName = productName
-    self.productPrice = productPrice
+    self.productid = productid
     self.status = status
 
 # Flask-Admin 視圖表單(View-Form)
@@ -74,12 +80,11 @@ class staffForm(BaseForm):
   id = IntegerField('序號', validators=[DataRequired()])
   name = StringField('員工名稱', validators=[DataRequired()])
   pw = StringField('登入密碼', validators=[DataRequired()])
-  basicSalary = IntegerField('底薪(WTC$)', validators=[DataRequired()])
+  basicsalary = IntegerField('底薪(WTC$)', validators=[DataRequired()])
 
 class orderForm(BaseForm):
   id = IntegerField('序號', validators=[DataRequired()])
-  productName = StringField('訂購物品', validators=[DataRequired()])
-  productPrice = StringField('價格', validators=[DataRequired()])
+  productid = StringField('訂購物品序號(可從產品表看)', validators=[DataRequired()])
   status = SelectField('訂單狀態', choices=[], validators=[DataRequired()])
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -98,9 +103,7 @@ class productView(ModelView):
   edit_modal=True
   form = productForm
   def is_accessible(self):
-    return (
-            session["user"]
-    )
+    return True
   def _handle_view(self, name, **kwargs):
         """
         Override builtin _handle_view in order to redirect users when a view is not
@@ -115,14 +118,12 @@ class staffView(ModelView):
         'id': '員工序號',
         'name': '員工名',
         'pw': '登入密碼',
-        'basicSalary': '底薪(WTC$)'
+        'basicsalary': '底薪(WTC$)'
   }
   edit_modal=True
   form = staffForm
   def is_accessible(self):
-    return (
-            session["user"]
-    )
+    return True
   def _handle_view(self, name, **kwargs):
         """
         Override builtin _handle_view in order to redirect users when a view is not
@@ -132,19 +133,17 @@ class staffView(ModelView):
 
 class orderView(ModelView):
   column_display_pk=True
-  column_searchable_list = ('productName', 'id', 'productPrice', 'status')
+  column_list = ('id', 'productid', 'status')
+  column_searchable_list = ('id', 'status')
   column_labels = {
         'id': '訂單序號',
-        'productName': '產品名',
-        'productPrice': '訂單價格',
+        'productid': '產品序號（可從表看)',
         'status': '訂單狀態'
   }
   edit_modal=True
   form = orderForm
   def is_accessible(self):
-    return (
-            session["user"]
-    )
+    return True
   def _handle_view(self, name, **kwargs):
         """
         Override builtin _handle_view in order to redirect users when a view is not
@@ -158,8 +157,11 @@ admin.add_view(productView(products, db.session, name="產品管理"))
 admin.add_view(staffView(staff, db.session, name="人員管理"))
 admin.add_view(orderView(orders, db.session, name="訂單管理"))
 
+with app.app_context():
+   db.create_all()
+
 # 路由Route
-@app.route("/admin/login", methods=["GET", "POST")
+@app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
   if request.method == "GET": return render_template("login.html")
   else:
@@ -171,7 +173,7 @@ def admin_login():
       return redirect("/admin/login")
     users = staff.query.filter_by(name=user).first()
     if users:
-      session["user"] = dict(uname=users.name, pw=users.pw)
+      session["user"] = {"uname":users.name, "pw":users.pw}
       return redirect("/admin")
     return redirect("/admin/login")
 
@@ -195,4 +197,13 @@ def wbank_pay():
     if not username or not password or not amount:
         return jsonify({"success": False, "message": "Missing credentials or amount"}), 400
     result = wbank.process_payment(username, password, amount)
+    if result["success"]:
+      product = products.query.filter_by(price=amount).first()
+      os = orders.query.all()
+      order = orders(id=len(os)+1, productid=product.id, status="已付款")
+      db.session.add(order)
+      db.session.commit()
+      return jsonify(result)
     return jsonify(result)
+
+app.run(port=4455)
