@@ -7,7 +7,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import BaseForm
 from wtforms.validators import DataRequired,NumberRange
 from wtforms import StringField,BooleanField,SelectField,FloatField,IntegerField
-import hashlib
+import hashlib, datetime
 
 app = Flask(__name__, static_folder="../frontend")
 wbank = WBankService()
@@ -15,6 +15,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = str(os.environ.get("dataurl"))
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 app.config['SECRET_KEY'] = hashlib.sha256("WTech2225556".encode()).hexdigest()
+app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(minutes=5)
 
 products = [
   dict(id=1, name="wbank-30000", price=300),
