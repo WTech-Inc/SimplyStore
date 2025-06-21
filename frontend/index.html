@@ -1,21 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <title>JingFa Store</title>
+  <title>經發商城</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
-    body { font-family: sans-serif; margin: 2rem; }
-    button { margin-left: 1rem; }
-    .product, .cart-item { margin-bottom: 0.5rem; }
-    .paybox { margin-top: 1.5rem; background: #f8f8f8; padding: 1rem; border-radius: 5px; width: 320px; }
+    body { 
+      font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
+      margin: 2rem; 
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+      color: #333;
+    }
+    button { 
+      margin-left: 1rem; 
+      padding: 0.5rem 1rem;
+      background-color: #1890ff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #40a9ff;
+    }
+    button:disabled {
+      background-color: #d9d9d9;
+      cursor: not-allowed;
+    }
+    .product, .cart-item { 
+      margin-bottom: 0.5rem; 
+      padding: 0.5rem;
+      border-bottom: 1px solid #eee;
+    }
+    .paybox { 
+      margin-top: 1.5rem; 
+      background: #f8f8f8; 
+      padding: 1rem; 
+      border-radius: 5px; 
+      width: 320px; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    input {
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    h1 {
+      color: #1890ff;
+      border-bottom: 2px solid #1890ff;
+      padding-bottom: 0.5rem;
+    }
+    .total {
+      font-weight: bold;
+      font-size: 1.2rem;
+      margin: 1rem 0;
+    }
   </style>
 </head>
 <body>
-  <h1>JingFa Store</h1>
+  <h1>經發商城</h1>
   <div id="root"></div>
   <script type="text/babel">
     function App() {
@@ -24,28 +75,61 @@
       const [username, setUsername] = React.useState("");
       const [password, setPassword] = React.useState("");
       const [paying, setPaying] = React.useState(false);
+      const [isLoading, setIsLoading] = React.useState(true);
+      const [error, setError] = React.useState(null);
 
       React.useEffect(() => {
         fetch("/products")
-          .then(res => res.json())
-          .then(data => setProducts(data));
+          .then(res => {
+            if (!res.ok) {
+              throw new Error("獲取商品失敗");
+            }
+            return res.json();
+          })
+          .then(data => {
+            setProducts(data);
+            setIsLoading(false);
+          })
+          .catch(err => {
+            setError(err.message);
+            setIsLoading(false);
+          });
       }, []);
 
       const total = cart.reduce((sum, p) => sum + p.price, 0);
 
       const addToCart = (p) => setCart([...cart, p]);
 
+      const removeFromCart = (index) => {
+        const newCart = [...cart];
+        newCart.splice(index, 1);
+        setCart(newCart);
+      };
+
       const handlePay = () => setPaying(true);
 
       const handleWBankPay = () => {
+        if (!username || !password) {
+          alert("請輸入WBank帳號和密碼");
+          return;
+        }
+
         fetch("/wbank/pay", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            username, password, amount: total, items: [cart.map(p => p.pname)]
+            username, 
+            password, 
+            amount: total, 
+            items: cart.map(p => p.pname)
           }),
         })
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            throw new Error("支付請求失敗");
+          }
+          return res.json();
+        })
         .then(data => {
           alert(data.message);
           if (data.success) {
@@ -54,50 +138,71 @@
             setUsername("");
             setPassword("");
           }
+        })
+        .catch(err => {
+          alert(`支付失敗: ${err.message}`);
         });
       };
 
+      if (isLoading) return <div>載入中...</div>;
+      if (error) return <div>錯誤: {error}</div>;
+
       return (
         <div>
-          <h2>Products</h2>
+          <h2>商品列表</h2>
           <div>
             {products.map(p => (
               <div className="product" key={p.id}>
                 {p.pname} - ${p.price}
-                <button onClick={() => addToCart(p)}>Add to Cart</button>
+                <button onClick={() => addToCart(p)}>加入購物車</button>
               </div>
             ))}
           </div>
-          <h2>Cart ({cart.length})</h2>
+          
+          <h2>購物車 ({cart.length})</h2>
           <div>
-            {cart.map((p, i) => (
-              <div className="cart-item" key={i}>
-                {p.pname} - ${p.price}
-              </div>
-            ))}
+            {cart.length === 0 ? (
+              <div>購物車是空的</div>
+            ) : (
+              cart.map((p, i) => (
+                <div className="cart-item" key={i}>
+                  {p.pname} - ${p.price}
+                  <button onClick={() => removeFromCart(i)}>移除</button>
+                </div>
+              ))
+            )}
           </div>
-          <div>Total: ${total}</div>
-          <button onClick={handlePay} disabled={cart.length === 0}>Checkout with WBank</button>
-          {paying &&
+          
+          <div className="total">總計: ${total}</div>
+          <button 
+            onClick={handlePay} 
+            disabled={cart.length === 0}
+          >
+            使用WBank結帳
+          </button>
+          
+          {paying && (
             <div className="paybox">
-              <div><b>WBank Payment</b></div>
+              <div><b>WBank支付</b></div>
               <div>
                 <input
-                  placeholder="WBank Username"
+                  placeholder="WBank帳號"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                 /><br />
                 <input
-                  placeholder="WBank Password"
+                  placeholder="WBank帳號密碼"
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                 /><br />
-                <button onClick={handleWBankPay} disabled={!username || !password}>Pay ${total}</button>
-                <button onClick={() => setPaying(false)} >Cancel</button>
+                <button onClick={handleWBankPay} disabled={!username || !password}>
+                  支付 ${total}
+                </button>
+                <button onClick={() => setPaying(false)}>取消</button>
               </div>
             </div>
-          }
+          )}
         </div>
       );
     }
