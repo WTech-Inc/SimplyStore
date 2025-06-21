@@ -193,12 +193,23 @@ def wbank_pay():
     data = request.json
     username = data.get("username")
     password = data.get("password")
+    items = data.get("items")
     amount = data.get("amount")
     if not username or not password or not amount:
         return jsonify({"success": False, "message": "Missing credentials or amount"}), 400
     result = wbank.process_payment(username, password, amount)
     if result["success"]:
-      product = products.query.filter_by(price=amount).first()
+      if len(items) == 1:
+         product = products.query.filter_by(price=amount).first()
+      else:
+         for item in items:
+            for i in item:
+              product = products.query.filter_by(name=item).first()
+              order = orders(id=len(orders.query.all())+1, productid=product.id, status="已付款")
+              db.session.add(order)
+         db.session.commit()
+         return jsonify(result)
+      # product = products.query.filter_by(price=amount).first()
       os = orders.query.all()
       order = orders(id=len(os)+1, productid=product.id, status="已付款")
       db.session.add(order)

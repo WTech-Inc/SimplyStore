@@ -42,7 +42,7 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            username, password, amount: total
+            username, password, amount: total, items: [cart.map(p => p.pname)]
           }),
         })
         .then(res => res.json())
