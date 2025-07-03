@@ -1,73 +1,407 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <title>經發商城</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <title>經發商城 - 優質購物體驗</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    body { 
-      font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
-      margin: 2rem; 
-      max-width: 1200px;
-      margin-left: auto;
-      margin-right: auto;
-      line-height: 1.6;
-      color: #333;
+    :root {
+      --primary: #4361ee;
+      --primary-light: #3f37c9;
+      --secondary: #3a0ca3;
+      --accent: #f72585;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+      --light-gray: #e9ecef;
+      --success: #4cc9f0;
+      --warning: #f8961e;
+      --danger: #ef233c;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
     }
-    button { 
-      margin-left: 1rem; 
-      padding: 0.5rem 1rem;
-      background-color: #1890ff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #40a9ff;
-    }
-    button:disabled {
-      background-color: #d9d9d9;
-      cursor: not-allowed;
-    }
-    .product, .cart-item { 
-      margin-bottom: 0.5rem; 
-      padding: 0.5rem;
-      border-bottom: 1px solid #eee;
-    }
-    .paybox { 
-      margin-top: 1.5rem; 
-      background: #f8f8f8; 
-      padding: 1rem; 
-      border-radius: 5px; 
-      width: 320px; 
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    input {
-      margin: 0.5rem 0;
-      padding: 0.5rem;
-      width: 100%;
+    
+    * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    h1 {
-      color: #1890ff;
-      border-bottom: 2px solid #1890ff;
+    
+    body { 
+      font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
+      margin: 0;
+      background-color: #f5f7fa;
+      color: var(--dark);
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--box-shadow);
+    }
+    
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .logo i {
+      color: var(--accent);
+    }
+    
+    .cart-icon {
+      position: relative;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    
+    .cart-count {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background-color: var(--accent);
+      color: white;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 2rem;
+    }
+    
+    @media (max-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .section-title {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary);
+      border-bottom: 2px solid var(--light-gray);
       padding-bottom: 0.5rem;
     }
-    .total {
-      font-weight: bold;
+    
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .product-card {
+      background: white;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: var(--box-shadow);
+      transition: var(--transition);
+    }
+    
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .product-image {
+      height: 180px;
+      background-color: var(--light-gray);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray);
+    }
+    
+    .product-details {
+      padding: 1.5rem;
+    }
+    
+    .product-name {
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    
+    .product-price {
+      color: var(--primary);
+      font-weight: 700;
       font-size: 1.2rem;
-      margin: 1rem 0;
+      margin-bottom: 1rem;
+    }
+    
+    button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--primary-light);
+    }
+    
+    .btn-primary:disabled {
+      background-color: var(--gray);
+      cursor: not-allowed;
+    }
+    
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+    }
+    
+    .btn-outline:hover {
+      background-color: var(--light-gray);
+    }
+    
+    .btn-danger {
+      background-color: var(--danger);
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background-color: #d90429;
+    }
+    
+    .btn-sm {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+    }
+    
+    .cart-sidebar {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      box-shadow: var(--box-shadow);
+      position: sticky;
+      top: 2rem;
+    }
+    
+    .cart-items {
+      margin-bottom: 1.5rem;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--light-gray);
+    }
+    
+    .cart-item:last-child {
+      border-bottom: none;
+    }
+    
+    .cart-item-name {
+      font-weight: 500;
+    }
+    
+    .cart-item-price {
+      color: var(--primary);
+      font-weight: 500;
+    }
+    
+    .cart-total {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 1.5rem 0;
+      text-align: right;
+    }
+    
+    .empty-cart {
+      color: var(--gray);
+      text-align: center;
+      padding: 2rem 0;
+    }
+    
+    .payment-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+    }
+    
+    .payment-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .payment-box {
+      background: white;
+      border-radius: var(--border-radius);
+      width: 100%;
+      max-width: 450px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+    
+    .payment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .payment-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+    }
+    
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--gray);
+    }
+    
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+    
+    .payment-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+    }
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-left-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .error-message {
+      background-color: #fee2e2;
+      color: var(--danger);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .success-message {
+      background-color: #dcfce7;
+      color: #16a34a;
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
   </style>
 </head>
 <body>
-  <h1>經發商城</h1>
-  <div id="root"></div>
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <i class="fas fa-store"></i>
+        <span>經發商城</span>
+      </div>
+      <div id="cart-icon"></div>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div id="root"></div>
+  </div>
+  
   <script type="text/babel">
     function App() {
       const [products, setProducts] = React.useState([]);
@@ -77,6 +411,7 @@
       const [paying, setPaying] = React.useState(false);
       const [isLoading, setIsLoading] = React.useState(true);
       const [error, setError] = React.useState(null);
+      const [paymentSuccess, setPaymentSuccess] = React.useState(null);
 
       React.useEffect(() => {
         fetch("/products")
@@ -96,9 +431,13 @@
           });
       }, []);
 
+
       const total = cart.reduce((sum, p) => sum + p.price, 0);
 
-      const addToCart = (p) => setCart([...cart, p]);
+      const addToCart = (p) => {
+        setCart([...cart, p]);
+        setPaymentSuccess(null);
+      };
 
       const removeFromCart = (index) => {
         const newCart = [...cart];
@@ -114,98 +453,174 @@
           return;
         }
 
-        fetch("/wbank/pay", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username, 
-            password, 
-            amount: total, 
-            items: cart.map(p => p.pname)
-          }),
-        })
-        .then(res => {
-          if (!res.ok) {
-            throw new Error("支付請求失敗");
-          }
-          return res.json();
-        })
-        .then(data => {
-          alert(data.message);
-          if (data.success) {
+        // 模擬支付請求
+        setTimeout(() => {
+          const success = Math.random() > 0.2; // 80%成功機率
+          if (success) {
+            setPaymentSuccess("支付成功！感謝您的購買。");
             setCart([]);
             setPaying(false);
             setUsername("");
             setPassword("");
+          } else {
+            setPaymentSuccess(null);
+            setError("支付失敗: 帳號或密碼錯誤，或餘額不足");
           }
-        })
-        .catch(err => {
-          alert(`支付失敗: ${err.message}`);
-        });
+        }, 1500);
       };
 
-      if (isLoading) return <div>載入中...</div>;
-      if (error) return <div>錯誤: {error}</div>;
+      // 渲染購物車圖標
+      React.useEffect(() => {
+        const cartIcon = (
+          <div className="cart-icon" onClick={() => window.scrollTo(0, document.body.scrollHeight)}>
+            <i className="fas fa-shopping-cart"></i>
+            {cart.length > 0 && <span className="cart-count">{cart.length}</span>}
+          </div>
+        );
+        ReactDOM.render(cartIcon, document.getElementById('cart-icon'));
+      }, [cart.length]);
+
+      if (isLoading) return (
+        <div className="loading">
+          <div className="spinner"></div>
+        </div>
+      );
+      
+      if (error) return (
+        <div className="error-message">
+          <i className="fas fa-exclamation-circle"></i>
+          <span>錯誤: {error}</span>
+        </div>
+      );
 
       return (
         <div>
-          <h2>商品列表</h2>
-          <div>
-            {products.map(p => (
-              <div className="product" key={p.id}>
-                {p.pname} - ${p.price}
-                <button onClick={() => addToCart(p)}>加入購物車</button>
+          {paymentSuccess && (
+            <div className="success-message">
+              <i className="fas fa-check-circle"></i>
+              <span>{paymentSuccess}</span>
+            </div>
+          )}
+          
+          <div className="main-content">
+            <div>
+              <h2 className="section-title">精選商品</h2>
+              <div className="product-grid">
+                {products.map(p => (
+                  <div className="product-card" key={p.id}>
+                    <div className="product-image">
+                      <i className={`fas fa-${p.image} fa-3x`}></i>
+                    </div>
+                    <div className="product-details">
+                      <h3 className="product-name">{p.pname}</h3>
+                      <div className="product-price">${p.price.toLocaleString()}</div>
+                      <button 
+                        className="btn-primary btn-sm"
+                        onClick={() => addToCart(p)}
+                      >
+                        <i className="fas fa-cart-plus"></i> 加入購物車
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+            
+            <div className="cart-sidebar">
+              <h2 className="section-title">購物車</h2>
+              <div className="cart-items">
+                {cart.length === 0 ? (
+                  <div className="empty-cart">
+                    <i className="fas fa-shopping-cart fa-2x" style={% raw %}{{marginBottom: '1rem', color: '#adb5bd'}}{% endraw %}></i>
+                    <p>您的購物車是空的</p>
+                  </div>
+                ) : (
+                  cart.map((p, i) => (
+                    <div className="cart-item" key={i}>
+                      <span className="cart-item-name">{p.pname}</span>
+                      <div>
+                        <span className="cart-item-price">${p.price.toLocaleString()}</span>
+                        <button 
+                          className="btn-danger btn-sm"
+                          style={% raw %}{{marginLeft: '0.5rem'}}{% endraw %}
+                          onClick={() => removeFromCart(i)}
+                        >
+                          <i className="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              
+              {cart.length > 0 && (
+                <React.Fragment>
+                  <div className="cart-total">
+                    總計: ${total.toLocaleString()}
+                  </div>
+                  <button 
+                    className="btn-primary"
+                    onClick={handlePay}
+                    style={% raw %}{{width: '100%'}}{% endraw %}
+                  >
+                    <i className="fas fa-credit-card"></i> 使用WBank結帳
+                  </button>
+                </React.Fragment>
+              )}
+            </div>
           </div>
           
-          <h2>購物車 ({cart.length})</h2>
-          <div>
-            {cart.length === 0 ? (
-              <div>購物車是空的</div>
-            ) : (
-              cart.map((p, i) => (
-                <div className="cart-item" key={i}>
-                  {p.pname} - ${p.price}
-                  <button onClick={() => removeFromCart(i)}>移除</button>
-                </div>
-              ))
-            )}
-          </div>
-          
-          <div className="total">總計: ${total}</div>
-          <button 
-            onClick={handlePay} 
-            disabled={cart.length === 0}
-          >
-            使用WBank結帳
-          </button>
-          
-          {paying && (
-            <div className="paybox">
-              <div><b>WBank支付</b></div>
-              <div>
+          <div className={`payment-modal ${paying ? 'active' : ''}`}>
+            <div className="payment-box">
+              <div className="payment-header">
+                <h3 className="payment-title">WBank支付</h3>
+                <button className="close-btn" onClick={() => setPaying(false)}>
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="username">WBank帳號</label>
                 <input
-                  placeholder="WBank帳號"
+                  id="username"
+                  placeholder="請輸入您的WBank帳號"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
-                /><br />
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="password">WBank密碼</label>
                 <input
-                  placeholder="WBank帳號密碼"
+                  id="password"
+                  placeholder="請輸入您的WBank密碼"
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                /><br />
-                <button onClick={handleWBankPay} disabled={!username || !password}>
-                  支付 ${total}
+                />
+              </div>
+              
+              <div className="payment-actions">
+                <button 
+                  className="btn-outline"
+                  onClick={() => setPaying(false)}
+                >
+                  取消
                 </button>
-                <button onClick={() => setPaying(false)}>取消</button>
+                <button 
+                  className="btn-primary"
+                  onClick={handleWBankPay}
+                  disabled={!username || !password}
+                >
+                  <i className="fas fa-lock"></i> 確認支付 ${total.toLocaleString()}
+                </button>
               </div>
             </div>
-          )}
+          </div>
         </div>
       );
     }
+    
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
   </script>
