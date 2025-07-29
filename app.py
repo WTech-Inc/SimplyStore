@@ -103,7 +103,7 @@ class productView(ModelView):
   edit_modal=True
   form = productForm
   def is_accessible(self):
-    return True
+    return session["user"]
   def _handle_view(self, name, **kwargs):
         """
         Override builtin _handle_view in order to redirect users when a view is not
@@ -123,7 +123,7 @@ class staffView(ModelView):
   edit_modal=True
   form = staffForm
   def is_accessible(self):
-    return True
+    return session["user"]
   def _handle_view(self, name, **kwargs):
         """
         Override builtin _handle_view in order to redirect users when a view is not
@@ -143,7 +143,7 @@ class orderView(ModelView):
   edit_modal=True
   form = orderForm
   def is_accessible(self):
-    return True
+    return session["user"]
   def _handle_view(self, name, **kwargs):
         """
         Override builtin _handle_view in order to redirect users when a view is not
